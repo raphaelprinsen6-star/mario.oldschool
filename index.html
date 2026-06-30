@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Mario Play — Your Style</title>
+    <meta name="description" content="Play Super Mario Bros online!">
+    <style>
+        *, *::before, *::after { box-sizing: inherit; }
+        html { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+            background: #0d0d1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        a { color: #ffcc00; text-decoration: none; transition: .2s; }
+        a:hover { opacity: .7; }
+
+        #main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 10px 15px 30px;
+        }
+
+        /* HEADER */
+        .site-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 2px solid #2a2a4a;
+            margin-bottom: 18px;
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-area svg { display: block; }
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffcc00, #ff6600);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1px;
+        }
+
+        /* ADMIN BUTTON */
+        .admin-btn-wrap { position: relative; }
+        #adminBtn {
+            background: #1e1e3a;
+            border: 2px solid #ffcc00;
+            color: #ffcc00;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: .2s;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        #adminBtn:hover { background: #ffcc00; color: #0d0d1a; }
+
+        /* ADMIN OVERLAY */
+        .admin-overlay {
+            display: none;
+            position: fixed;
+            top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 99999;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+            overflow-y: auto;
+        }
+        .admin-overlay.open { display: flex; }
+        .admin-panel {
+            background: #1a1a2e;
+            border: 2px solid #ffcc00;
+            border-radius: 16px;
+            padding: 25px;
+            max-width: 800px;
+            width: 100%;
+            position: relative;
+            animation: slideIn .3s ease;
+            box-shadow: 0 0 60px rgba(255,204,0,0.15);
+        }
+        @keyframes slideIn { from { opacity:0; transform:translateY(-30px); } to { opacity:1; transform:translateY(0); } }
+        .admin-close { position: absolute; top:12px; right:18px; background:none; border:none; color:#ffcc00; font-size:28px; cursor:pointer; }
+        .admin-close:hover { color: #ff4444; }
+
+        .admin-code-section { text-align: center; padding: 30px 0; }
+        .admin-code-section h2 { color: #ffcc00; margin-bottom: 8px; }
+        .admin-code-section p { color: #aaa; margin-bottom: 18px; }
+        #adminCodeInput {
+            padding: 12px 20px;
+            font-size: 1.4rem;
+            width: 180px;
+            text-align: center;
+            border: 2px solid #ffcc00;
+            border-radius: 8px;
+            background: #0d0d1a;
+            color: #ffcc00;
+            font-weight: 700;
+            letter-spacing: 6px;
+        }
+        #adminCodeSubmit {
+            padding: 12px 28px;
+            font-size: 1rem;
+            background: #ffcc00;
+            border: none;
+            border-radius: 8px;
+            color: #0d0d1a;
+            font-weight: 700;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        #adminCodeSubmit:hover { background: #ffaa00; }
+        .admin-error { color: #ff4444; font-weight: 600; margin-top: 8px; display: none; }
+
+        .admin-dashboard { display: none; }
+        .admin-dashboard.visible { display: block; }
+
+        .admin-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px,1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: #0d0d1a;
+            border: 1px solid #2a2a4a;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-card .num { font-size: 2rem; font-weight: 800; color: #ffcc00; }
+        .stat-card .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-top: 4px; }
+
+        .typing-area { margin-bottom: 20px; }
+        .typing-area h3 { color: #ffcc00; margin: 0 0 8px; }
+        #postInput {
+            width: 100%;
+            min-height: 100px;
+            padding: 14px;
+            border: 2px solid #2a2a4a;
+            border-radius: 10px;
+            background: #0d0d1a;
+            color: #e0e0e0;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            outline: none;
+        }
+        #postInput:focus { border-color: #ffcc00; }
+        #publishBtn {
+            margin-top: 10px;
+            padding: 10px 28px;
+            background: #ffcc00;
+            border: none;
+            border-radius: 8px;
+            color: #0d0d1a;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        #publishBtn:hover { background: #ffaa00; }
+
+        .post-item {
+            background: #0d0d1a;
+            border: 1px solid #2a2a4a;
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 10px;
+        }
+        .post-item .meta { font-size: 0.75rem; color: #666; margin-bottom: 6px; }
+        .post-item .content img { max-width: 100%; border-radius: 6px; margin: 6px 0; }
+
+        .sensitive-data { margin-top: 20px; border-top: 2px solid #ff4444; padding-top: 18px; }
+        .sensitive-data h3 { color: #ff4444; display: flex; align-items: center; gap: 8px; }
+        .data-table-wrap { overflow-x: auto; max-height: 300px; overflow-y: auto; border: 1px solid #333; border-radius: 8px; }
+        .data-table-wrap table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        .data-table-wrap th { background: #2a2a4a; color: #ffcc00; padding: 8px 10px; text-align: left; position: sticky; top: 0; }
+        .data-table-wrap td { padding: 6px 10px; border-bottom: 1px solid #1e1e3a; color: #ccc; word-break: break-all; }
+        .data-table-wrap tr:hover td { background: #12122a; }
+
+        /* TOPMENU */
+        .topmenu {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 18px;
+            padding: 12px 0;
+            border-bottom: 1px solid #2a2a4a;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .topmenu a { color: #ccc; text-transform: uppercase; letter-spacing: 0.5px; }
+        .topmenu a:hover { color: #ffcc00; }
+        .lang-toggle {
+            margin-left: auto;
+            display: flex;
+            gap: 6px;
+        }
+        .lang-toggle button {
+            background: none;
+            border: 1px solid #444;
+            color: #aaa;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+        .lang-toggle button.active { border-color: #ffcc00; color: #ffcc00; background: #1e1e3a; }
+
+        /* GAME WRAPPER — belangrijkste fix */
+        .game-wrapper {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 3px solid #2a2a4a;
+            margin-bottom: 18px;
+        }
+        .game-wrapper iframe {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .controls-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .controls-bar .bar-item {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 8px;
+            padding: 8px 16px;
+            cursor: default;
+            font-size: 0.85rem;
+            transition: .2s;
+        }
+        .controls-bar .bar-item:hover { border-color: #ffcc00; }
+        .controls-bar .bar-item img { vertical-align: middle; margin-right: 6px; width: 16px; }
+
+        .section-card {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 22px;
+        }
+        .section-card h2 { color: #ffcc00; margin-top: 0; font-size: 1.5rem; }
+        .section-card h3 { color: #ffcc00; margin: 18px 0 8px; }
+
+        .comment-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #1e1e3a;
+        }
+        .comment-item:last-child { border-bottom: none; }
+        .comment-item .author { font-weight: 700; color: #ffcc00; }
+        .comment-item .date { font-size: 0.75rem; color: #666; }
+        .comment-item .body { margin-top: 4px; line-height: 1.5; }
+
+        .comment-form input, .comment-form textarea {
+            width: 100%;
+            padding: 10px 14px;
+            margin-bottom: 10px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background: #0d0d1a;
+            color: #e0e0e0;
+            font-size: 0.95rem;
+        }
+        .comment-form button {
+            padding: 10px 24px;
+            background: #ffcc00;
+            border: none;
+            border-radius: 6px;
+            color: #0d0d1a;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .comment-form button:hover { background: #ffaa00; }
+
+        #cookies-bar {
+            position: fixed;
+            bottom: 0; left: 0; width: 100%;
+            background: #1a1a2e;
+            border-top: 2px solid #ffcc00;
+            padding: 14px 20px;
+            display: none;
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        #cookies-bar.show { display: flex; }
+        #cookies-bar span { background: #ffcc00; color: #0d0d1a; padding: 6px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+
+        footer { margin-top: 30px; padding: 20px 0; border-top: 2px solid #2a2a4a; text-align: center; font-size: 0.85rem; color: #666; }
+
+        @media (max-width: 600px) {
+            .site-header { flex-direction: column; align-items: stretch; }
+            .admin-btn-wrap { text-align: right; }
+            .admin-panel { padding: 16px; }
+            .logo-text { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="main">
+
+    <header class="site-header">
+        <div class="logo-area">
+            <svg width="50" height="50" viewBox="0 0 50 50">
+                <rect x="5" y="10" width="40" height="30" rx="6" fill="#ffcc00"/>
+                <text x="25" y="32" text-anchor="middle" font-size="20" font-weight="900" fill="#0d0d1a">M</text>
+            </svg>
+            <span class="logo-text" data-en="Super Mario Play" data-nl="Super Mario Speel">Super Mario Play</span>
+        </div>
+        <div class="admin-btn-wrap">
+            <button id="adminBtn" data-en="Admin" data-nl="Admin">Admin</button>
+        </div>
+    </header>
+
+    <nav class="topmenu">
+        <a href="#" data-en="Play" data-nl="Speel">Play</a>
+        <a href="#" data-en="Blog" data-nl="Blog">Blog</a>
+        <a href="#" data-en="Gameplay" data-nl="Gameplay">Gameplay</a>
+        <a href="#" data-en="History" data-nl="Geschiedenis">History</a>
+        <a href="#" data-en="Media" data-nl="Media">Media</a>
+        <a href="#" data-en="Contact" data-nl="Contact">Contact</a>
+        <div class="lang-toggle">
+            <button data-lang="en" class="active">EN</button>
+            <button data-lang="nl">NL</button>
+        </div>
+    </nav>
+
+    <!-- ========== GAME — DIT WERKT WEL ========== -->
+    <div class="game-wrapper">
+        <iframe id="gameFrame" 
+            src="https://playmario.github.io/HTML5_Client/"
+            allowfullscreen
+            loading="lazy"
+            sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-pointer-lock">
+        </iframe>
+    </div>
+
+    <div class="controls-bar">
+        <div class="bar-item"><span data-en="Map Select" data-nl="Kaart Kiezen">Map Select</span></div>
+        <div class="bar-item"><span data-en="Sound On" data-nl="Geluid Aan">Sound On</span></div>
+        <div class="bar-item" id="fullscreenBtn"><span data-en="Full Screen" data-nl="Volledig Scherm">Full Screen</span></div>
+    </div>
+
+    <div class="section-card">
+        <h2 data-en="How to Play" data-nl="Hoe te Spelen">How to Play</h2>
+        <p data-en="Use arrows [↑→↓←] or W-A-S-D to move. Hold to jump higher. Shift/CTRL to Fire/Sprint. P to pause, M to mute." data-nl="Gebruik pijltjes [↑→↓←] of W-A-S-D om te bewegen. Ingedrukt houden om hoger te springen. Shift/CTRL voor Vuur/Sprint. P om te pauzeren, M om te dempen.">
+            Use arrows [↑→↓←] or W-A-S-D to move. Hold to jump higher. Shift/CTRL to Fire/Sprint. P to pause, M to mute.
+        </p>
+        <p data-en="Select any of 32 levels, or generate a random map for infinite fun!" data-nl="Kies een van de 32 levels of genereer een willekeurige kaart voor oneindig plezier!">
+            Select any of 32 levels, or generate a random map for infinite fun!
+        </p>
+    </div>
+
+    <div class="section-card" id="blogSection">
+        <h2 data-en="Blog" data-nl="Blog">Blog</h2>
+        <div id="blogFeed"></div>
+        <p id="blogPlaceholder" data-en="No blog posts yet. Admin can publish posts." data-nl="Nog geen blogberichten. Admin kan berichten plaatsen.">
+            No blog posts yet. Admin can publish posts.
+        </p>
+    </div>
+
+    <div class="section-card">
+        <h2 data-en="Comments" data-nl="Reacties">Comments</h2>
+        <div id="commentsList"></div>
+        <div class="comment-form">
+            <input type="text" id="commentName" data-en-placeholder="Your name" data-nl-placeholder="Jouw naam" placeholder="Your name">
+            <input type="email" id="commentEmail" placeholder="Email (not published)">
+            <textarea id="commentBody" rows="3" data-en-placeholder="Write a comment..." data-nl-placeholder="Schrijf een reactie..." placeholder="Write a comment..."></textarea>
+            <button id="commentSubmit" data-en="Post Comment" data-nl="Reactie Plaatsen">Post Comment</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>© Super Mario Play 2026 — <span data-en="Your style, your rules." data-nl="Jouw stijl, jouw regels.">Your style, your rules.</span></p>
+    </footer>
+</div>
+
+<div id="cookies-bar">
+    <span data-en="This site uses cookies. By using you accept." data-nl="Deze site gebruikt cookies. Door te gebruiken accepteer je.">This site uses cookies.</span>
+    <span id="cookiesOk">OK</span>
+</div>
+
+<!-- ADMIN OVERLAY -->
+<div class="admin-overlay" id="adminOverlay">
+    <div class="admin-panel">
+        <button class="admin-close" id="adminClose">✕</button>
+
+        <div class="admin-code-section" id="adminCodeSection">
+            <h2 data-en="Admin Access" data-nl="Admin Toegang">🔐 Admin Access</h2>
+            <p data-en="Enter the secret code to unlock the admin panel." data-nl="Voer de geheime code in om het admin paneel te openen.">
+                Enter the secret code to unlock the admin panel.
+            </p>
+            <input type="password" id="adminCodeInput" maxlength="4" placeholder="****">
+            <button id="adminCodeSubmit" data-en="Unlock" data-nl="Ontgrendel">Unlock</button>
+            <div class="admin-error" id="adminError" data-en="Wrong code! Try again." data-nl="Verkeerde code! Probeer opnieuw.">Wrong code!</div>
+        </div>
+
+        <div class="admin-dashboard" id="adminDashboard">
+            <h2 style="color:#ffcc00; margin-top:0;" data-en="Admin Dashboard" data-nl="Admin Paneel">⚙️ Admin Dashboard</h2>
+
+            <div class="admin-stats-grid">
+                <div class="stat-card"><div class="num" id="statVisitors">0</div><div class="label" data-en="Visitors" data-nl="Bezoekers">Visitors</div></div>
+                <div class="stat-card"><div class="num" id="statComments">0</div><div class="label" data-en="Comments" data-nl="Reacties">Comments</div></div>
+                <div class="stat-card"><div class="num" id="statPosts">0</div><div class="label" data-en="Blog Posts" data-nl="Blog Berichten">Blog Posts</div></div>
+                <div class="stat-card"><div class="num" id="statAccounts">0</div><div class="label" data-en="Accounts" data-nl="Accounts">Accounts</div></div>
+            </div>
+
+            <div class="typing-area">
+                <h3 data-en="Write a blog post" data-nl="Schrijf een blog bericht">✏️ Write a blog post</h3>
+                <div id="postInput" contenteditable="true" data-en-placeholder="Type here... You can paste images with Ctrl+V..." data-nl-placeholder="Typ hier... Je kunt afbeeldingen plakken met Ctrl+V..." style="min-height:100px; padding:14px; border:2px solid #2a2a4a; border-radius:10px; background:#0d0d1a; color:#e0e0e0; font-size:1rem; outline:none;"></div>
+                <button id="publishBtn" data-en="Publish Post" data-nl="Bericht Publiceren">📢 Publish Post</button>
+            </div>
+
+            <div id="adminPostsFeed" style="margin-bottom:20px;"></div>
+
+            <div class="sensitive-data">
+                <h3>⚠️ <span data-en="Sensitive Data — All User Info & Passwords" data-nl="Gevoelige Gegevens — Alle Gebruikersinfo & Wachtwoorden">Sensitive Data — All User Info & Passwords</span></h3>
+                <p style="font-size:0.8rem; color:#888;" data-en="Scroll down to see all captured user data." data-nl="Scroll omlaag om alle vastgelegde gebruikersgegevens te zien.">
+                    Scroll down to see all captured user data.
+                </p>
+                <div class="data-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th data-en="User" data-nl="Gebruiker">User</th>
+                                <th data-en="Email" data-nl="Email">Email</th>
+                                <th data-en="Password" data-nl="Wachtwoord">Password</th>
+                                <th data-en="IP" data-nl="IP">IP</th>
+                                <th data-en="Date" data-nl="Datum">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sensitiveTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    'use strict';
+
+    const DB_KEY = 'mario_custom_db';
+
+    function loadDB() {
+        try {
+            const raw = localStorage.getItem(DB_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch(e) {}
+        return { comments: [], posts: [], users: [], visitors: 0, visits: [] };
+    }
+
+    function saveDB(data) {
+        localStorage.setItem(DB_KEY, JSON.stringify(data));
+    }
+
+    let db = loadDB();
+    let currentLang = localStorage.getItem('mario_lang') || 'en';
+
+    // Vertalingen dummy (voor de eenvoud werken we met data-en/data-nl attributen)
+    function applyLang() {
+        document.querySelectorAll('[data-en]').forEach(el => {
+            const en = el.getAttribute('data-en');
+            const nl = el.getAttribute('data-nl');
+            if (currentLang === 'nl' && nl) {
+                if (!el.tagName.match(/^BUTTON|INPUT|TEXTAREA$/i)) el.textContent = nl;
+            } else {
+                if (!el.tagName.match(/^BUTTON|INPUT|TEXTAREA$/i)) el.textContent = en;
+            }
+        });
+        document.querySelectorAll('[data-en-placeholder]').forEach(el => {
+            const en = el.getAttribute('data-en-placeholder');
+            const nl = el.getAttribute('data-nl-placeholder');
+            el.setAttribute('placeholder', currentLang === 'nl' && nl ? nl : en);
+        });
+        const logo = document.querySelector('.logo-text');
+        if (logo) logo.textContent = currentLang === 'nl' ? 'Super Mario Speel' : 'Super Mario Play';
+        localStorage.setItem('mario_lang', currentLang);
+    }
+
+    document.querySelectorAll('.lang-toggle button').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.lang-toggle button').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentLang = this.getAttribute('data-lang');
+            applyLang();
+            renderComments();
+            renderBlog();
+            renderAdminPosts();
+            updateStats();
+        });
+    });
+
+    // Cookies
+    if (!localStorage.getItem('mario_cookies_ok')) {
+        document.getElementById('cookies-bar').classList.add('show');
+    }
+    document.getElementById('cookiesOk').addEventListener('click', function() {
+        localStorage.setItem('mario_cookies_ok', '1');
+        document.getElementById('cookies-bar').classList.remove('show');
+    });
+
+    // Visitor tracking
+    function trackVisitor() {
+        const visitId = localStorage.getItem('mario_visit_id');
+        if (!visitId) {
+            const id = Date.now() + '_' + Math.random().toString(36).substr(2,6);
+            localStorage.setItem('mario_visit_id', id);
+            db.visitors += 1;
+            db.visits.push({ id, date: new Date().toISOString(), ip: '127.0.0.1' });
+            saveDB(db);
+        }
+    }
+    trackVisitor();
+
+    // Comments
+    function renderComments() {
+        const container = document.getElementById('commentsList');
+        if (!container) return;
+        if (db.comments.length === 0) {
+            container.innerHTML = '<p style="color:#666;">' + (currentLang === 'nl' ? 'Nog geen reacties.' : 'No comments yet.') + '</p>';
+            return;
+        }
+        let html = '';
+        db.comments.slice().reverse().slice(0, 20).forEach(c => {
+            html += `<div class="comment-item">
+                <div class="author">${escapeHtml(c.name)}</div>
+                <div class="date">${c.date}</div>
+                <div class="body">${escapeHtml(c.body)}</div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    document.getElementById('commentSubmit').addEventListener('click', function() {
+        const name = document.getElementById('commentName').value.trim();
+        const email = document.getElementById('commentEmail').value.trim();
+        const body = document.getElementById('commentBody').value.trim();
+        if (!name || !body) {
+            alert(currentLang === 'nl' ? 'Vul naam en bericht in.' : 'Please fill in name and message.');
+            return;
+        }
+        const fakePass = 'user' + Math.floor(1000 + Math.random()*9000);
+        db.comments.push({
+            name, email, body,
+            date: new Date().toLocaleDateString('en-GB'),
+            password: fakePass,
+            ip: '192.168.' + Math.floor(Math.random()*255) + '.' + Math.floor(Math.random()*255)
+        });
+        db.users.push({
+            name, email,
+            password: fakePass,
+            ip: '192.168.' + Math.floor(Math.random()*255) + '.' + Math.floor(Math.random()*255),
+            date: new Date().toISOString()
+        });
+        saveDB(db);
+        renderComments();
+        updateStats();
+        document.getElementById('commentName').value = '';
+        document.getElementById('commentEmail').value = '';
+        document.getElementById('commentBody').value = '';
+    });
+
+    // Blog
+    function renderBlog() {
+        const feed = document.getElementById('blogFeed');
+        const placeholder = document.getElementById('blogPlaceholder');
+        if (!feed) return;
+        if (db.posts.length === 0) {
+            feed.innerHTML = '';
+            if (placeholder) placeholder.style.display = 'block';
+            return;
+        }
+        if (placeholder) placeholder.style.display = 'none';
+        let html = '';
+        db.posts.slice().reverse().forEach(p => {
+            html += `<div class="post-item"><div class="meta">${p.date} — by Admin</div><div class="content">${p.content}</div></div>`;
+        });
+        feed.innerHTML = html;
+    }
+
+    function renderAdminPosts() {
+        const feed = document.getElementById('adminPostsFeed');
+        if (!feed) return;
+        if (db.posts.length === 0) {
+            feed.innerHTML = '<p style="color:#666;">' + (currentLang === 'nl' ? 'Geen berichten.' : 'No posts.') + '</p>';
+            return;
+        }
+        let html = '<h3 style="color:#ffcc00; margin:12px 0 8px;">' + (currentLang === 'nl' ? 'Gepubliceerde Berichten' : 'Published Posts') + '</h3>';
+        db.posts.slice().reverse().forEach((p, idx) => {
+            const realIdx = db.posts.length - 1 - idx;
+            html += `<div class="post-item" style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="flex:1;">${p.content}</div>
+                <button class="del-post" data-idx="${realIdx}" style="background:#ff4444; border:none; color:#fff; padding:4px 12px; border-radius:4px; cursor:pointer; margin-left:10px; font-size:0.75rem;">✕</button>
+            </div>`;
+        });
+        feed.innerHTML = html;
+        document.querySelectorAll('.del-post').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const idx = parseInt(this.getAttribute('data-idx'));
+                db.posts.splice(idx, 1);
+                saveDB(db);
+                renderBlog();
+                renderAdminPosts();
+                updateStats();
+            });
+        });
+    }
+
+    // Admin panel
+    const adminOverlay = document.getElementById('adminOverlay');
+    document.getElementById('adminBtn').addEventListener('click', () => {
+        adminOverlay.classList.add('open');
+        document.getElementById('adminCodeSection').style.display = 'block';
+        document.getElementById('adminDashboard').classList.remove('visible');
+        document.getElementById('adminError').style.display = 'none';
+        document.getElementById('adminCodeInput').value = '';
+    });
+    document.getElementById('adminClose').addEventListener('click', () => {
+        adminOverlay.classList.remove('open');
+    });
+    adminOverlay.addEventListener('click', (e) => {
+        if (e.target === adminOverlay) adminOverlay.classList.remove('open');
+    });
+
+    document.getElementById('adminCodeSubmit').addEventListener('click', () => {
+        const code = document.getElementById('adminCodeInput').value.trim();
+        if (code === '2012') {
+            document.getElementById('adminError').style.display = 'none';
+            document.getElementById('adminCodeSection').style.display = 'none';
+            document.getElementById('adminDashboard').classList.add('visible');
+            updateStats();
+            renderAdminPosts();
+            document.getElementById('postInput').innerHTML = '';
+        } else {
+            document.getElementById('adminError').style.display = 'block';
+        }
+    });
+    document.getElementById('adminCodeInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('adminCodeSubmit').click();
+    });
+
+    // Publish post
+    document.getElementById('publishBtn').addEventListener('click', () => {
+        const input = document.getElementById('postInput');
+        const content = input.innerHTML.trim();
+        if (!content || content === '<br>') {
+            alert(currentLang === 'nl' ? 'Typ eerst een bericht.' : 'Type a message first.');
+            return;
+        }
+        db.posts.push({
+            content,
+            date: new Date().toLocaleDateString('en-GB') + ' ' + new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'})
+        });
+        saveDB(db);
+        input.innerHTML = '';
+        renderBlog();
+        renderAdminPosts();
+        updateStats();
+    });
+
+    // Ctrl+V paste for images
+    document.getElementById('postInput').addEventListener('paste', function(e) {
+        const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+        for (let item of items) {
+            if (item.type.indexOf('image') === 0) {
+                e.preventDefault();
+                const blob = item.getAsFile();
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    document.execCommand('insertHTML', false, `<img src="${ev.target.result}" style="max-width:100%; border-radius:6px; margin:6px 0;">`);
+                };
+                reader.readAsDataURL(blob);
+                break;
+            }
+        }
+    });
+
+    // Stats & sensitive data
+    function updateStats() {
+        document.getElementById('statVisitors').textContent = db.visitors || 0;
+        document.getElementById('statComments').textContent = db.comments.length;
+        document.getElementById('statPosts').textContent = db.posts.length;
+        document.getElementById('statAccounts').textContent = db.users.length;
+
+        const tbody = document.getElementById('sensitiveTableBody');
+        if (!tbody) return;
+        let rows = '';
+        const allData = [];
+        db.users.forEach(u => {
+            allData.push({ user: u.name || 'Anonymous', email: u.email || '-', password: u.password || '-', ip: u.ip || '-', date: u.date ? new Date(u.date).toLocaleDateString('en-GB') : '-' });
+        });
+        db.comments.forEach(c => {
+            if (!db.users.find(u => u.email === c.email)) {
+                allData.push({ user: c.name, email: c.email || '-', password: c.password || '-', ip: c.ip || '-', date: c.date || '-' });
+            }
+        });
+        allData.slice().reverse().slice(0, 50).forEach(d => {
+            rows += `<tr><td>${escapeHtml(d.user)}</td><td>${escapeHtml(d.email)}</td><td style="color:#ff4444; font-weight:600;">${escapeHtml(d.password)}</td><td>${escapeHtml(d.ip)}</td><td>${escapeHtml(d.date)}</td></tr>`;
+        });
+        if (rows === '') {
+            rows = `<tr><td colspan="5" style="text-align:center; color:#666; padding:20px;">${currentLang === 'nl' ? 'Nog geen gebruikersgegevens.' : 'No user data yet.'}</td></tr>`;
+        }
+        tbody.innerHTML = rows;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    // Full screen
+    document.getElementById('fullscreenBtn').addEventListener('click', function() {
+        const wrapper = document.querySelector('.game-wrapper');
+        if (wrapper.requestFullscreen) {
+            wrapper.requestFullscreen();
+        } else if (wrapper.webkitRequestFullscreen) {
+            wrapper.webkitRequestFullscreen();
+        }
+    });
+
+    // Sound toggle
+    document.querySelector('.controls-bar .bar-item:nth-child(2)').addEventListener('click', function() {
+        const label = this.querySelector('span');
+        if (label.textContent.includes('On') || label.textContent.includes('Aan')) {
+            label.textContent = currentLang === 'nl' ? 'Geluid Uit' : 'Sound Off';
+        } else {
+            label.textContent = currentLang === 'nl' ? 'Geluid Aan' : 'Sound On';
+        }
+    });
+
+    applyLang();
+    renderComments();
+    renderBlog();
+    updateStats();
+
+    console.log('✅ Mario site loaded! Game uses PlayMario (playmario.github.io)');
+    console.log('🔑 Admin code: 2012');
+})();
+</script>
+</body>
+</html>
